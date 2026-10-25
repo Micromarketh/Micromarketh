@@ -29,5 +29,5 @@ Las APIs están **inventariadas y planificadas; aún no están implementadas**. 
 
 ## Planificación
 
-Tablero de GitHub Projects: *[pegar aquí el enlace del proyecto]*
+Tablero de GitHub Projects: *https://github.com/orgs/Micromarketh/projects/1*
 
