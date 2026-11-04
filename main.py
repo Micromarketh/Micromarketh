@@ -51,5 +51,7 @@ def health():
 for r in (sedes.router, catalogo.router, internas.router):
     app.include_router(r)
 
-_implementadas = {(m, ruta.path) for ruta in app.routes if isinstance(ruta, APIRoute) for m in ruta.methods}
+_esquema = app.openapi()
+_implementadas = {(m.upper(), ruta) for ruta, ops in _esquema["paths"].items() for m in ops}
+app.openapi_schema = None
 app.include_router(incluir_planificadas(_implementadas))
