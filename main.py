@@ -1,12 +1,12 @@
 """Micromarket – Web Service POS y Control de Inventario (FastAPI, arquitectura en capas).
 
-Ejecutar:  uvicorn main:app --reload --host 0.0.0.0 --port 8000
-Swagger:   http://localhost:8000/docs
+Ejecutar:  uvicorn main:app --reload --host 127.0.0.1 --port 8000
+Swagger:   http://127.0.0.1:8000/docs
 """
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.routing import APIRoute
 
+from api.router import router as product_router  # ← Guía: router de productos (HU-005)
 from app.api.historias import tags_openapi
 from app.api.routers import catalogo, internas, sedes
 from app.api.routers.planificadas import incluir_planificadas
@@ -18,6 +18,7 @@ from app.domain.exceptions import ErrorDominio
 
 Base.metadata.create_all(bind=engine)
 
+# Crea la aplicación FastAPI
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -43,11 +44,19 @@ def manejar_validacion(_: Request, exc: RequestValidationError):
     return respuesta(400, "Datos de entrada no válidos", errores=errores)
 
 
+# Endpoint raíz de bienvenida  ← Guía
+@app.get("/", tags=["Sistema"])
+def root():
+    return {"message": "¡API Micromarket funcionando! 🚀"}
+
+
 @app.get("/health", tags=["Sistema"], summary="Health check")
 def health():
     return {"status": "ok", "version": settings.APP_VERSION, "environment": settings.APP_ENV}
 
 
+# Registra los routers  ← Guía: include_router(router)
+app.include_router(product_router)
 for r in (sedes.router, catalogo.router, internas.router):
     app.include_router(r)
 
