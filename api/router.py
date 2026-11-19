@@ -1,10 +1,10 @@
 # CAPA API — rutas HTTP. Solo llama al servicio y convierte errores en HTTP.
 # Aquí NO hay lógica de negocio.
 
-from fastapi import APIRouter, HTTPException, status
-from domain.models import ProductoCreate, ProductoResponse
+from fastapi import APIRouter, HTTPException, Query, status
+from domain.models import ProductoCreate, ProductoResponse, CatalogoPaginado
 from repository.product_repo import producto_repository
-from service.product_service import ProductoService, ProductoNoEncontrado
+from service.product_service import ProductoService, ProductoNoEncontrado, ProductoEnConflicto
 
 router = APIRouter(prefix="/api/v1/productos", tags=["Productos"])
 
@@ -12,9 +12,10 @@ router = APIRouter(prefix="/api/v1/productos", tags=["Productos"])
 service = ProductoService(repo=producto_repository)
 
 
-@router.get("/", response_model=list[ProductoResponse], summary="Listar productos")
-def listar_productos():
-    return service.listar()
+@router.get("/", response_model=CatalogoPaginado, summary="Consultar catálogo paginado")
+def listar_productos(pagina: int = Query(1, ge=1, description="Número de página"),
+                     tamano: int = Query(10, ge=1, le=100, description="Productos por página")):
+    return service.listar(pagina, tamano)
 
 
 @router.get("/{id}", response_model=ProductoResponse, summary="Consultar producto")
@@ -30,8 +31,8 @@ def obtener_producto(id: int):
 def crear_producto(datos: ProductoCreate):
     try:
         return service.crear(datos)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ProductoEnConflicto as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.put("/{id}", response_model=ProductoResponse, summary="Actualizar producto")
@@ -40,6 +41,8 @@ def actualizar_producto(id: int, datos: ProductoCreate):
         return service.actualizar(id, datos)
     except ProductoNoEncontrado as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ProductoEnConflicto as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -50,6 +53,7 @@ def inactivar_producto(id: int):
         return service.inactivar(id)
     except ProductoNoEncontrado as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ProductoEnConflicto as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
