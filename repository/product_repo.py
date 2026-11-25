@@ -18,7 +18,9 @@ class ProductoRepository:
         self._datos = [
             Producto(1, "Arroz Diana 500 g", "Diana", "Granos", "7702511000014", 3200, 0),
             Producto(2, "Leche Entera 1 L", "Alquería", "Lácteos", "7702177000028", 4500, 0),
-            Producto(3, "Gaseosa 1.5 L", "Postobón", "Bebidas", "7702090000035", 5200, 19),
+            # La gaseosa simula un traslado en curso (para probar el 409)
+            Producto(3, "Gaseosa 1.5 L", "Postobón", "Bebidas", "7702090000035", 5200, 19,
+                     movimientos_en_curso=True),
         ]
         self._siguiente_id = 4
 

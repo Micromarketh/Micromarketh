@@ -57,11 +57,20 @@ class ProductoResponse(BaseModel):
         from_attributes = True
 
 
+# ── Schema de SALIDA PAGINADA (catálogo) ──────────────────────
+class CatalogoPaginado(BaseModel):
+    pagina:        int
+    tamano:        int
+    total:         int
+    total_paginas: int
+    productos:     list[ProductoResponse]
+
+
 # ── Entidad del dominio ───────────────────────────────────────
 class Producto:
     def __init__(self, id: int, nombre: str, marca: str, categoria: str,
                  codigo_barras: str, precio: float, tasa_iva: int,
-                 estado: str = "ACTIVO"):
+                 estado: str = "ACTIVO", movimientos_en_curso: bool = False):
         self.id            = id
         self.nombre        = nombre
         self.marca         = marca
@@ -70,6 +79,8 @@ class Producto:
         self.precio        = precio
         self.tasa_iva      = tasa_iva
         self.estado        = estado
+        # Simulado: la verificación real es la HU-050 (fuera del Corte 3)
+        self.movimientos_en_curso = movimientos_en_curso
 
     # REGLA: ¿el producto se puede vender?
     def esta_activo(self) -> bool:
@@ -78,6 +89,10 @@ class Producto:
     # REGLA: precio final con IVA
     def precio_con_iva(self) -> float:
         return round(self.precio * (1 + self.tasa_iva / 100), 2)
+
+    # REGLA: no se inactiva con movimientos en curso
+    def puede_inactivarse(self) -> bool:
+        return not self.movimientos_en_curso
 
     # REGLA: no se inactiva dos veces
     def inactivar(self):
