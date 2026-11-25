@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from api.router import router as product_router
+from api.auth_router import router as auth_router
 
 app = FastAPI(
     title="Micromarket Web Service",
@@ -7,6 +8,7 @@ app = FastAPI(
     description="Servicio web de la cadena de micromercados: catálogo, sedes, inventario y ventas. Arquitectura de cuatro capas (domain, repository, service, api).",
 )
 
+app.include_router(auth_router)
 app.include_router(product_router)
 
 
