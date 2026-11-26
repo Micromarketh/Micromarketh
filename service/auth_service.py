@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
-from domain.usuario import LoginRequest, CambioContrasenaRequest, TokenDatos, EXPIRA_EN
+from domain.usuario import LoginRequest, CambioContrasenaRequest, TokenDatos, SesionValidada, EXPIRA_EN
 from repository.usuario_repo import UsuarioRepository
 
 SECRET_KEY = os.getenv("JWT_SECRET", "micromarket-clave-desarrollo")
@@ -98,3 +98,24 @@ class AuthService:
             raise ValueError("La nueva contraseña debe ser diferente a la actual")
         nuevo_hash = bcrypt.hashpw(datos.contrasena_nueva.encode(), bcrypt.gensalt())
         self._repo(self.repo.actualizar_contrasena, u.id, nuevo_hash)
+
+
+    # ── HU-033: validar sesión para otros módulos (API interna) ──
+    def validar_sesion(self, token: str) -> SesionValidada:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITMO])
+        except jwt.ExpiredSignatureError:
+            raise TokenInvalido("El token ha expirado")
+        except jwt.InvalidTokenError:
+            raise TokenInvalido("Token inválido")
+        u = self._repo(self.repo.obtener_por_id, int(payload["sub"]))
+        if self.repo.token_revocado(payload["jti"]):
+            raise TokenInvalido("La sesión fue revocada")
+        if not u or not u.activo:
+            raise TokenInvalido("El usuario no está activo")
+        return SesionValidada(
+            usuarioId=f"USR-{u.id:04d}",
+            rol=u.rol,
+            sedeId=u.sedes[0],
+            vigente=True,
+        )
