@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from api.router import router as product_router
 from api.auth_router import router as auth_router
+from api.seguridad_interna_router import router as seguridad_interna_router
 
 app = FastAPI(
     title="Micromarket Web Service",
@@ -10,6 +11,7 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(product_router)
+app.include_router(seguridad_interna_router)
 
 
 @app.get("/", summary="Inicio")

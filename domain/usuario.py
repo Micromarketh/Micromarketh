@@ -56,3 +56,13 @@ class Usuario:
     def reiniciar_intentos(self):
         self.intentos_fallidos = 0
         self.bloqueado_hasta = None
+
+
+
+# ── Schema de SALIDA de la validación interna (HU-033) ────────
+class SesionValidada(BaseModel):
+    usuarioId: str
+    rol:       str
+    sedeId:    str
+    vigente:   bool
+    
